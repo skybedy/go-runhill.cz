@@ -1,0 +1,58 @@
+<!doctype html>
+<html>
+<head>
+    <script src="https://api.mapy.cz/loader.js"></script>
+	<script>Loader.load()</script>
+
+</head>
+
+<body>
+
+    <button onclick="load()">Test</button>
+	<div id="m"></div>
+
+    
+    
+    
+    <script type="text/javascript">
+        var center = SMap.Coords.fromWGS84(14.41790, 50.12655);
+        var m = new SMap(JAK.gel("m"), center, 13);
+        m.addDefaultLayer(SMap.DEF_BASE).enable();
+        m.addDefaultControls();
+
+        var sync = new SMap.Control.Sync({bottomSpace:30});
+        m.addControl(sync); 
+    </script>
+
+    zalohy
+
+    var center = SMap.Coords.fromWGS84(18.5178189,49.5325814);
+    var m = new SMap(JAK.gel("m"), center, 10,{orientation:  SMap.NORTH});
+    m.addDefaultLayer(SMap.DEF_TURIST).enable();
+    m.addDefaultControls();
+    var sync = new SMap.Control.Sync();
+    sync.setBottomSpace(10);
+    m.addControl(sync);
+
+
+    function nactiGPX() { /* Funkce volaná po stisku tlačítka */
+        var value = JAK.gel("gpx").value.trim();
+        //console.log(value);
+        
+        if (!value) { return alert("Vložte do textového pole obsah GPX souboru"); }
+        var xmlDoc = JAK.XML.createDocument(value);
+
+        var gpx = new SMap.Layer.GPX(xmlDoc, null, {maxPoints:500}); /* GPX vrstva */
+        m.addLayer(gpx); /* Přidáme ji do mapy */
+        gpx.enable();    /* Zapnout vrstvu */
+        gpx.fit();       /* Nastavit mapu tak, aby byla GPX trasa dobře vidět */
+    }
+
+
+
+    <p id="testzalozka">blaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa</p>
+    <div style="height:2000px">ko</div>
+
+
+</body>
+</html>

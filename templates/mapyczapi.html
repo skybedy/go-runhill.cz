@@ -1,0 +1,60 @@
+<!doctype html>
+<html>
+<head>
+	<script src="https://api.mapy.cz/loader.js"></script>
+	<script>Loader.load()</script>
+</head>
+
+<body id="advanced-markers">
+
+    Zde vložte obsah GPX souboru:<br/>
+        <textarea id="gpx"></textarea>
+        <input type="button" value="Zobrazit" onclick="nactiGPX()" />
+        <hr/>
+    
+    
+        <div id="m"></div>
+ 
+    <script type="text/javascript">
+    
+    var center = SMap.Coords.fromWGS84(14.41790, 50.12655);
+    var m = new SMap(JAK.gel("m"), center, 13);
+    m.addControl(new SMap.Control.Sync()); /* Aby mapa reagovala na změnu velikosti průhledu */
+    m.addDefaultLayer(SMap.DEF_TURIST).enable(); /* Turistický podklad */
+
+    var mouse = new SMap.Control.Mouse(SMap.MOUSE_PAN | SMap.MOUSE_WHEEL | SMap.MOUSE_ZOOM); /* Ovládání myší */
+    m.addControl(mouse);
+
+    var sync = new SMap.Control.Sync();
+    sync.setBottomSpace(10);
+    m.addControl(sync);
+
+    var xhr = new JAK.Request(JAK.Request.XML);
+    xhr.setCallback(window, "response");
+    //xhr.send("//api.mapy.cz/xml/sample.xml");
+    xhr.send("https://api.timechip.cz/uploads/test.xml");
+
+    var response = function(xmlDoc) {
+        var gpx = new SMap.Layer.GPX(xmlDoc);
+        m.addLayer(gpx);
+        gpx.enable();
+        gpx.fit();
+    }
+
+
+
+
+
+    
+
+        
+
+
+
+    </script>
+
+
+
+
+</body>
+</html>
