@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>{{.Title}}</title>
+ 
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="static/js/jquery-3.4.1.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+        <script src="https://api.mapy.cz/loader.js"></script>
+        <script type="text/javascript">Loader.load();</script>
+        <script>
+            window.scrollTo(1000, 1000);
+        </script>
+    </head>
+    <body>
+
+        <div id="main">
+            <form method="post" id="test_form" enctype="multipart/form-data">
+              <div><input name="text_field" value="test"></div>
+              <div><input name="file_field" value="bla"></div>
+              <div><input type="file" name="gpxFile"></div>
+              <div><button type="submit">Odeslat</button></div>
+            </form>
+        </div>  
+        <!--<button>Načíst API a mapu</button>-->
+        <div id="mapa" style="height:1000px"></div>
+        
+        
+
+<script>
+    var stred = SMap.Coords.fromWGS84(18.45, 49.535);
+    var mapa = new SMap(JAK.gel("mapa"), null, 14);
+    
+    mapa.addDefaultLayer(SMap.DEF_TURIST).enable();
+    mapa.addDefaultControls();
+
+    $('button').on('click', function (e) {
+        const data =  new FormData($('#test_form')[0]);
+        console.log(data);
+
+        $.ajax({
+            method: 'post',
+            processData: false,
+            contentType: false,
+            cache: false,
+            data: data,
+            enctype: 'multipart/form-data',
+            //url: 'http://localhost:8000',
+            url: '/filetesty',
+            dataType: "json",
+            success : function(data){
+                //console.log(data);
+                //var value = data.gpx_file.trim();
+                //if (!value) { return alert("Vložte do textového pole obsah GPX souboru"); }
+                var value = data.gpx_file;
+                console.log(data.gpx_file);
+                var xmlDoc = JAK.XML.createDocument(data);
+                var stred = SMap.Coords.fromWGS84(18.45, 49.535);
+                
+                var gpx = new SMap.Layer.GPX(xmlDoc, null, {maxPoints:500}); /* GPX vrstva */
+                
+                mapa.addLayer(gpx); /* Přidáme ji do mapy */
+                gpx.enable();    /* Zapnout vrstvu */
+                gpx.fit();
+            }
+        }); 
+        return false;
+    })
+</script>   
+</body>
+</html>

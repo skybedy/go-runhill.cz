@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<users>
+  <user type="admin" x="bla">
+    <name>Elliot</name>
+    <social>
+      <facebook>https://facebook.com</facebook>
+      <twitter>https://twitter.com</twitter>
+      <youtube>https://youtube.com</youtube>
+      <neco>
+        <bla>1</bla>
+        <blax>2</blax>
+      </neco>
+    </social>
+  </user>
+  <user type="reader" x="okoko">
+    <name>Fraser</name>
+    <social>
+      <facebook>https://facebook.com</facebook>
+      <twitter>https://twitter.com</twitter>
+      <youtube>https://youtube.com</youtube>
+      <neco>
+        <bla>4</bla>
+        <blax>5</blax>
+      </neco>
+    </social>
+  </user>
+</users>

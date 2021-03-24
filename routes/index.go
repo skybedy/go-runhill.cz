@@ -3,11 +3,13 @@ package routes
 import (
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"runhill.cz/utils"
 )
 
-func Index(c *gin.Context) {
-	c.HTML(http.StatusOK, "index.html", gin.H{
-		"title": "Main website",
+func Index(w http.ResponseWriter, r *http.Request) {
+	utils.ExecuteTemplate(w, "index.html", struct {
+		Title string
+	}{
+		Title: "Hlavní strana",
 	})
 }

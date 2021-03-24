@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>{{.title}}</title>
+ 
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="static/js/jquery-3.4.1.min.js"></script>
+        <script src="https://api.mapy.cz/loader.js"></script>
+        <script type="text/javascript">Loader.load();</script>
+        <script>
+            window.scrollTo(1000, 1000);
+        </script>
+    </head>
+    <body>
+
+        <div id="main">
+            <form method="post" id="test_form" enctype="multipart/form-data">
+              <div><input name="text_field" value="test"></div>
+              <div><input name="file_field" value="bla"></div>
+              <div><input type="file" name="gpxFile"></div>
+              <div><button type="submit">Odeslat</button></div>
+            </form>
+        </div>  
+        <!--<button>Načíst API a mapu</button>-->
+        <div id="m" style="height:300px"></div>
+        
+        <div style="height:2000px" id="testDiv">hoj</div>
+
+
+
+
+
+        <script>
+
+            window.scrollTo(500, 0);
+            function onscrollFunction(){
+                    //console.log($( document ).scrollTop());
+                    var x = document.getElementById("testDiv");
+                    //console.log(x.offsetTop);
+                    console.log(x.getBoundingClientRect().top);
+          
+                }
+
+/*
+
+
+window.load = function() {
+  Loader.async = true;
+  Loader.load(null, null, createMap);
+}
+
+window.createMap = function() {
+    var center = SMap.Coords.fromWGS84(14.41790, 50.12655);
+  var m = new SMap(JAK.gel("m"), center, 13);
+  m.addDefaultLayer(SMap.DEF_BASE).enable();
+  var xhr = new JAK.Request(JAK.Request.XML);
+xhr.setCallback(window, "response");
+
+var response = function(xmlDoc) {
+    alert();
+    xhr.send("//api.mapy.cz/xml/sample.xml");
+                var gpx = new SMap.Layer.GPX(xmlDoc);
+                m.addLayer(gpx);
+                gpx.enable();
+                gpx.fit();
+                
+            }
+                
+}        
+        */
+
+   
+        </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        <script>
+            /*
+            var form = document.querySelector('form');
+            var request = new XMLHttpRequest();
+            form.addEventListener('submit',function(e){
+                e.preventDefault();
+                var formdata = new FormData(form);
+                console.log(formdata);
+                request.open('POST','test.php')
+                request.send(formdata);
+            },false)*/
+        
+        </script>   
+
+
+
+<script>
+     var center = SMap.Coords.fromWGS84(14.400307, 50.071853);
+      var m = new SMap(JAK.gel("m"), center, 15);
+      m.addDefaultLayer(SMap.DEF_TURIST).enable();
+      m.addDefaultControls();
+
+
+$('button').on('click', function (e) {
+
+const data =  new FormData($('#test_form')[0]);
+console.log(data);
+
+$.ajax({
+  method: 'post',
+  processData: false,
+  contentType: false,
+   cache: false,
+  data: data,
+  enctype: 'multipart/form-data',
+  url: 'http://localhost:8000',
+  //url: 'http://api.timechip.loc/virtual-race',
+  dataType: "json",
+  success : function(data){
+      console.log(data);
+      
+      //var value = data.gpx_file.trim();
+      //if (!value) { return alert("Vložte do textového pole obsah GPX souboru"); }
+      
+      var value = data.gpx_file;
+      
+      
+      var xmlDoc = JAK.XML.createDocument(value);
+
+      var gpx = new SMap.Layer.GPX(xmlDoc, null, {maxPoints:500}); /* GPX vrstva */
+      m.addLayer(gpx); /* Přidáme ji do mapy */
+      gpx.enable();    /* Zapnout vrstvu */
+      gpx.fit();
+
+
+  }
+}); 
+return false;
+})
+</script>   
+         
+    </body>
+</html>

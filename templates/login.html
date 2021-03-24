@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="cz">
+{{template "head"}}
+    <body>
+{{template "menu"}}
+    <main class="container">
+      <div class="w-25 mx-auto">
+        <div class="p-4  border rounded-2">
+
+        <form>
+            <h2 class="h4 fw-normal">Přihlaste se přes...</h2>
+            <div><a href="javascript:void(0);" id="fblink"><img class="img-fluid" src="static/img/facebook-login-icon.png" /></a></div>
+            <div class="mt-1"><a href="javascript:void(0);" id="fblink"><img class="img-fluid" src="static/img/google-login-icon.png" /></a></div>
+
+            <h2 class="h4 fw-normal mt-3">.. anebo klasicky.</h2>
+            <label for="inputEmail" class="visually-hidden">Email address</label>
+            <input type="email" id="inputEmail" class="form-control mt-1" placeholder="Email" required autofocus>
+            <label for="inputPassword" class="visually-hidden">Password</label>
+            <input type="password" id="inputPassword" class="form-control mt-1" placeholder="Heslo" required>
+            <button class="w-100 btn btn-lg btn-danger mt-1" type="submit">Přihlásit se</button>
+          </form>
+        </div>
+        <p class="text-center">Ještě nemáte účet? <a href="">Zaregistrujte se</a>.</p>
+      </div>
+
+{{template "footer"}}
+        </main>
+    </body>
+</html>
