@@ -7,10 +7,10 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"runhill.cz/conf"
+	conf "runhill.cz/config"
 )
 
-func HttpServer(router *mux.Router) {
+func HttpServer(router *mux.Router, portx string) {
 
 	port, ok := os.LookupEnv("PORT")
 	if !ok {
@@ -20,7 +20,7 @@ func HttpServer(router *mux.Router) {
 	server := &http.Server{
 		Handler: router,
 		//Addr:    "127.0.0.1:" + port,
-		Addr: "0.0.0.0:" + port,
+		Addr: "0.0.0.0:" + portx,
 		// Good practice: enforce timeouts for servers you create!
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,

@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="cz">
+{{template "head"}}
+    <body>
+{{template "menu" .Login}}
+    <main class="container">
+      <div class="w-25 mx-auto">
+        <div class="p-4  border rounded-2">
+
+          <form method="post" action="/registration">
+            <h2 class="h5 fw-normal text-center">Doplňte, případně změňte</h2>
+            <input type="hidden" name="oauth" value="{{ .Oauth }}" required>
+            <label for="inputName" class="visually-hidden">Jméno</label>
+            <input id="inputName" class="form-control mt-1" placeholder="Jméno" name="firstname" value="{{ .FirstName }}" required>
+           
+
+            <label for="inputSurname" class="visually-hidden">Příjmení</label>
+            <input id="inputSurname" class="form-control mt-1" placeholder="Příjmení" name="lastname" value="{{ .LastName }}" required>
+            
+            <select name="gender" class="form-select mt-1" required>
+                <option value="" selected disabled>Pohlaví</option>
+                <option value="Z">Žena</option>
+                <option value="M">Muž</option>
+            </select>
+          
+             <select name="birdthyear" class="form-select mt-1"  required>
+                <option value="" selected disabled>Ročník</option>
+                {{range $val := .Years}}
+                     <option value="{{$val}}">{{$val}}</option> 
+                {{end}}
+             </select>   
+       
+
+            <label for="inputEmail" class="visually-hidden">Email address</label>
+            <input name="email" type="email" id="inputEmail" class="form-control mt-1" placeholder="Email" value="{{ .Email }}" readonly>
+            
+            {{if eq .InputPassword true}}
+            <label for="inputPassword" class="visually-hidden">Password</label>
+            <input type="password" id="inputPassword" class="form-control mt-1" placeholder="Heslo">
+            {{end}}
+            <button class="w-100 btn btn-lg btn-danger mt-1" type="submit">Zaregistrovat se</button>
+          </form>
+        </div>
+      </div>
+
+{{template "footer"}}
+        </main>
+    </body>
+</html>

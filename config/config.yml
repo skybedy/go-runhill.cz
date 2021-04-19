@@ -1,0 +1,34 @@
+server:
+  port: "1305"
+  name : "http://localhost"
+  webname : "http://localhost:1305"
+
+database:
+  dbdriver: "mysql"
+  dbname: "runhill.cz"
+  dbuser: "skybedy"
+  dbpassword: "mk1313life"
+
+google:
+  clientid: "990650209650-tidphg8cnge229cd3888st5jhkfk1g73.apps.googleusercontent.com"
+  clientsecret: "-sosFxmYeGyU-Pe6QutUvGlo"
+  redirectroute : "afterlogin"
+  
+facebook:
+  clientid: "872931336611060"
+  clientsecret: "df28dc60eaa5e26d625f19806207322d"
+  redirectroute : "https://runhill.cz"
+
+authentication:
+  sessionname : "runhill.cz"
+
+email:
+  smtpserver : "mail.timechip.cz"
+  smtpport : 25
+  emailcharset : "UTF-8"
+  emailfrom : "info@timechip.cz"
+  emailfromname : "runhill"
+
+
+EXAMPLE_VAR: "variable from config.yml"
+EXAMPLE_PATH: "path from config.yml"
