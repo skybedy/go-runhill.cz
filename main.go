@@ -3,9 +3,6 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"strconv"
-	"strings"
-	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/spf13/viper"
@@ -20,40 +17,6 @@ type Neco struct {
 }
 
 func Testiky(from int, to int) {
-
-	n := time.Now().Year()
-	fmt.Println(n)
-	/*
-		slicex := []int{100: 102}
-		for i := range slicex {
-			fmt.Println(i)
-		}*/
-
-	var buffer [256]int
-	slice := buffer[1:100]
-
-	for i := 1920; i < len(slice); i++ {
-		slice[i] = int(i)
-	}
-
-	//fmt.Println(len(slice))
-
-	//fmt.Println(slice)
-
-	AddOneToEachElement(slice)
-	//fmt.Println(slice)
-
-	var str string
-	for i := from; i <= to; i++ {
-
-		str += strconv.Itoa(i) + ","
-
-	}
-
-	strx := strings.TrimRight(str, ",")
-
-	arr := strings.Split(strx, ",")
-	fmt.Println(arr)
 
 }
 func AddOneToEachElement(slice []int) {

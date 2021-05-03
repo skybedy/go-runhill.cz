@@ -26,7 +26,7 @@ email:
   smtpserver : "mail.timechip.cz"
   smtpport : 25
   emailcharset : "UTF-8"
-  emailfrom : "info@timechip.cz"
+  emailfrom : "timechip.cz@gmail.com"
   emailfromname : "runhill"
 
 

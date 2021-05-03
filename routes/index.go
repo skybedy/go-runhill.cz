@@ -1,67 +1,69 @@
 package routes
 
 import (
-	"fmt"
 	"net/http"
 
 	"runhill.cz/utils"
 )
 
 //var x = sessions.NewCookieStore([]byte(sessionSecret), nil)
+//var sessionGlob *sessions.Session
 
-func indexHandler(w http.ResponseWriter, req *http.Request) {
+func indexHandler(res http.ResponseWriter, req *http.Request) {
 
-	/*
-		type Cookie struct {
-			Name       string
-			Value      string
-			Path       string
-			Domain     string
-			Expires    time.Time
-			RawExpires string
+	if req.Method == "POST" {
+		/*
+			session1, err := utils.SessionStore.Get(req, "index")
+			if err != nil {
+				fmt.Println(err)
+			}
 
-			// MaxAge=0 means no 'Max-Age' attribute specified.
-			// MaxAge<0 means delete cookie now, equivalently 'Max-Age: 0'
-			// MaxAge>0 means Max-Age attribute present and given in seconds
-			MaxAge   int
-			Secure   bool
-			HttpOnly bool
-			Raw      string
-			Unparsed []string // Raw text of unparsed attribute-value pairs
-		}
+			fmt.Println(session1.Values["lplpl"])
+			utils.SessionStore.Destroy(res, "index")*/
 
-		expiration := time.Now().Add(365 * 24 * time.Hour)
-		cookie := http.Cookie{Name: "test", Value: "testovič", Expires: expiration}
-		http.SetCookie(w, &cookie)*/
+	} else {
+		/*
+			sessionGlob := utils.SessionStore.New("index")
+			sessionGlob.Values["neco"] = "blabla"
+			sessionGlob.Values["necojin"] = "blplpllablakoko"
+			sessionGlob.Save(res)
+			fmt.Println(sessionGlob)*/
 
-	utils.ExecuteTemplate(w, "index.html", struct {
-		Title string
-		Login interface{}
-	}{
-		Title: "Hlavní strana",
-		Login: utils.SessionExists(utils.SessionName, req),
-	})
+		utils.ExecuteTemplate(res, "index.html", struct {
+			Title string
+			Login interface{}
+		}{
+			Title: "Hlavní strana",
+			Login: utils.SessionExists(utils.SessionName, req),
+		})
+	}
 }
 
 func messageHandler(res http.ResponseWriter, req *http.Request) {
-	var message string = ""
-	var alert = "danger"
-	from := req.URL.Query().Get("from")
-	alert = req.URL.Query().Get("alert")
-	fmt.Println(len(alert))
+	//var message string = ""
+	//var alert = "danger"
+	//from := req.URL.Query().Get("from")
+	//alert = req.URL.Query().Get("alert")
 
-	switch from {
-	case "login":
-		message = "Takhle to nepůjde"
-	case "loginnoauthorise":
-		message = "Účet ještě nebyl funkční, nejprve je třeba dokončit autorizaci, která vám byla zaslána emailem"
-	case "authorizationtrue":
-		message = "Super, klaplo to a teď se už můžete regulérně přihlásit"
-	case "authorizationmisunderstanding":
-		message = "Verifikace už byla provedena, pokud nejste, můžete se přihlásit a pokračovat"
-	case "accountdelete":
-		message = " Váš účet byl smazán, kdykoli se samozřejmě můžete přihlásit znovu."
+	/*
+		switch from {
+		case "login":
+			message = "Takhle to nepůjde"
+		case "loginnoauthorise":
+			message = "Účet ještě nebyl funkční, nejprve je třeba dokončit autorizaci, která vám byla zaslána emailem"
+		case "authorizationtrue":
+			message = "Super, klaplo to a teď se už můžete regulérně přihlásit"
+		case "authorizationmisunderstanding":
+			message = "Verifikace už byla provedena, pokud nejste, můžete se přihlásit a pokračovat"
+		case "accountdelete":
+			message = " Váš účet byl smazán, kdykoli se samozřejmě můžete přihlásit znovu."
+		case "editpersonsuccess":
+			message = "Vaše údaje byly úspěšně změněny."
 
+		}*/
+
+	if message == "" && alert == "" {
+		http.Redirect(res, req, "/", http.StatusFound) //tohle se musí pořádně rozpitvat a navrhnout finální řešení, stránka prostě bez parametrů nemá platnost
 	}
 
 	utils.ExecuteTemplate(res, "message.html", struct {
@@ -75,4 +77,5 @@ func messageHandler(res http.ResponseWriter, req *http.Request) {
 		Message:   message,
 		AlertType: alert,
 	})
+	message, alert = "", ""
 }

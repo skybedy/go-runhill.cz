@@ -34,12 +34,13 @@ func SecToTime(secinput int) string {
 }
 
 func SessionExists(SessionName string, r *http.Request) map[string]interface{} {
-	arr := map[string]interface{}{"verify": false, "firstname": ""}
+	arr := map[string]interface{}{"verify": false, "firstname": "", "oauth": ""}
 	val, _ := SessionStore.Get(r, SessionName)
 	if val != nil {
 		if val.Values["sessionVerify"] == true {
 			arr["verify"] = true
 			arr["firstname"] = fmt.Sprintf("%v", val.Values["sessionFirstName"])
+			arr["oauth"] = fmt.Sprintf("%v", val.Values["sessionOauth"])
 		}
 	}
 	return arr
@@ -64,10 +65,10 @@ func PasswordGenerator(plainPassword string) string {
 	return string(hash[:])
 }
 
-func ComparePasswords(hashedPassword string, plainPassword string) bool {
+func ComparePasswords(hashedPassword *string, plainPassword string) bool {
 	// Since we'll be getting the hashed password from the DB it
 	// will be a string so we'll need to convert it to a byte slice
-	byteHash := []byte(hashedPassword)
+	byteHash := []byte(*hashedPassword)
 	err := bcrypt.CompareHashAndPassword(byteHash, []byte(plainPassword))
 	if err != nil {
 		return false

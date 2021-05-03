@@ -11,6 +11,9 @@ import (
 	"runhill.cz/utils"
 )
 
+var message string
+var alert string
+
 func NewRouter() *mux.Router {
 	router := mux.NewRouter()
 
@@ -23,27 +26,30 @@ func NewRouter() *mux.Router {
 	}
 	stateConfig := gologin.DebugOnlyCookieConfig
 
-	router.HandleFunc("/", indexHandler).Methods("GET")
-	router.HandleFunc("/login-options", loginOptionsHandler).Methods("GET")
+	router.HandleFunc("/", indexHandler)
+	router.HandleFunc("/login", loginHandler).Methods("GET")
 	router.HandleFunc("/signin-form", signinFormHandler).Methods("GET")
+	router.HandleFunc("/password-change", passwordChangeHandler) //POST i GET
 	router.HandleFunc("/account-summary", accountSummaryHandler).Methods("GET")
 	router.Handle("/account-delete/{action}", accountDeleteHandler()).Methods("GET")
 	router.HandleFunc("/logout", logoutHandler).Methods("GET")
-	router.HandleFunc("/login-form", loginFormHandler).Methods("GET")
+	router.HandleFunc("/registration-ouath", registrationOauthHandler).Methods("GET")
 	router.HandleFunc("/verify/{verifystr}", verifyHandler).Methods("GET")
-	router.HandleFunc("/registration", registrationHandler).Methods("POST")
+	router.HandleFunc("/registration", registrationHandler)
 	router.HandleFunc("/edit-person", editPersonHandler).Methods("POST")
 	router.HandleFunc("/filetesty", Filetesty).Methods("POST")
 	router.HandleFunc("/message", messageHandler).Methods("GET")
+	router.HandleFunc("/etapy", etapyHandler).Methods("GET")
+	router.HandleFunc("/checkuserexists", checkUserExistsHandler).Methods("GET")
 
-	router.Handle("/login", LoginEmailHandler()).Methods("POST")
+	router.Handle("/login", loginEmailHandler()).Methods("POST")
 
 	//router.HandleFunc("/login", LoginEmailHandler).Methods("POST")
-	router.Handle("/login", LoginEmailHandler()).Methods("POST")
+	//router.Handle("/login", loginEmailHandler()).Methods("POST")
 
 	router.Handle("/login-google", google.StateHandler(stateConfig, google.LoginHandler(oauth2Config, nil))).Methods("GET")
 	//router.Handle("/login-facebook", google.StateHandler(stateConfig, google.LoginHandler(oauth2Config, nil))).Methods("GET")
-	router.Handle("/afterlogin", google.StateHandler(stateConfig, google.CallbackHandler(oauth2Config, loginHandler(), nil))).Methods("GET")
+	router.Handle("/afterlogin", google.StateHandler(stateConfig, google.CallbackHandler(oauth2Config, loginOauthHandler(), nil))).Methods("GET")
 	//staticFileDirectory := http.Dir("/var/www/timechip.cz/go-www.timechip.cz/static")
 	staticFileDirectory := http.Dir("./static")
 	staticFileHandler := http.StripPrefix("/static/", http.FileServer(staticFileDirectory))

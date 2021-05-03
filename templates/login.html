@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="cz">
+{{template "head"}}
+    <body>
+{{template "menu" .Login}}
+    <main class="container">
+      <div id="loginContainer" class="w-25 mx-auto">
+        <div class="p-4  border rounded-2">
+        <h2 class="h5 fw-normal">Pokud ještě nemáte účet...</h2>
+        <a href="/registration" class="w-100 btn btn-lg btn-danger mt-1" role="button">Zaregistujte se</a>
+        <form method="post" action="/login">
+            <h2 class="h5 fw-normal mt-4">máte-li ho, přihlaste se přes...</h2>
+            <div><a href="/login-facebook"><img class="img-fluid" src="static/img/facebook-login-icon.png" /></a></div>
+            <div class="mt-1"><a href="/login-google"><img class="img-fluid" src="static/img/google-login-icon.png" /></a></div>
+            <h2 class="h5 fw-normal mt-4">.. anebo klasicky emailem.</h2>
+            <label for="inputEmail" class="visually-hidden">Email address</label>
+            <input type="email" id="inputEmail" class="form-control mt-1" name="email" placeholder="Email" v-model="email" v-on:blur="checkUserExists()" required>
+            <label for="inputPassword" class="visually-hidden">Password</label>
+            <input type="password" id="inputPassword" name="password" class="form-control mt-1" placeholder="Heslo" required>
+            <button class="w-100 btn btn-lg btn-success mt-1" type="submit">Přihlásit se</button>
+          </form>
+        </div>
+      </div>
+      
+      {{template "footer"}}
+    </main>
+  
+  
+  
+ 
+
+
+
+
+    </body>
+</html>
+
+
+
+
+
