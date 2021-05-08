@@ -30,19 +30,20 @@ func NewRouter() *mux.Router {
 	router.HandleFunc("/login", loginHandler).Methods("GET")
 	router.HandleFunc("/signin-form", signinFormHandler).Methods("GET")
 	router.HandleFunc("/password-change", passwordChangeHandler) //POST i GET
-	router.HandleFunc("/account-summary", accountSummaryHandler).Methods("GET")
 	router.Handle("/account-delete/{action}", accountDeleteHandler()).Methods("GET")
 	router.HandleFunc("/logout", logoutHandler).Methods("GET")
 	router.HandleFunc("/registration-ouath", registrationOauthHandler).Methods("GET")
 	router.HandleFunc("/verify/{verifystr}", verifyHandler).Methods("GET")
 	router.HandleFunc("/registration", registrationHandler)
-	router.HandleFunc("/edit-person", editPersonHandler).Methods("POST")
+	router.HandleFunc("/account-change", accountChangeHandler)
 	router.HandleFunc("/filetesty", Filetesty).Methods("POST")
 	router.HandleFunc("/message", messageHandler).Methods("GET")
 	router.HandleFunc("/etapy", etapyHandler).Methods("GET")
 	router.HandleFunc("/checkuserexists", checkUserExistsHandler).Methods("GET")
 
 	router.Handle("/login", loginEmailHandler()).Methods("POST")
+	router.NotFoundHandler = http.HandlerFunc(notFoundHandler)
+	router.HandleFunc("/404", notFoundHandler)
 
 	//router.HandleFunc("/login", LoginEmailHandler).Methods("POST")
 	//router.Handle("/login", loginEmailHandler()).Methods("POST")

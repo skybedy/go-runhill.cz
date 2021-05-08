@@ -13,3 +13,10 @@ var SmtpServer string
 var EmailCharset string
 var EmailFrom string
 var EmailFromName string
+
+type HttpResponse struct {
+	Status    string `json:"status"`
+	Code      int    `json:"code"`
+	Firstname string `json:"firstname"`
+	Refererer string `json:"referer"`
+}
