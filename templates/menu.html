@@ -5,14 +5,15 @@
       <a class="p-2 text-dark" href="/etapy">Etapy</a>
       <a class="p-2 text-dark" href="#">Přihlášky</a>
       <a class="p-2 text-dark" href="#">Výsledky</a>
+      
     </nav>
     <div id="tlacitko">
    {{if eq .verify true}}
       <div  class="dropdown">
         <button  class="btn btn-outline-primary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">{{.firstname}}</button>
         <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-          <li><a class="dropdown-item" href="/account-change">Změnit údaje</a></li>
-          {{if eq .oauth "<nil>"}}
+          <li><a class="dropdown-item" href="/account-edit">Změnit údaje</a></li>
+          {{if eq .oauth "false"}} {{/* když jsem tady dal bolean, tak to nefungovalo */}}
             <li><a class="dropdown-item" href="/password-change">Změnit heslo</a></li>
           {{end}}
           <li><a class="dropdown-item" href="/account-delete/challenge">Smazat účet</a></li>

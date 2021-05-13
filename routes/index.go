@@ -29,6 +29,8 @@ func indexHandler(res http.ResponseWriter, req *http.Request) {
 			sessionGlob.Save(res)
 			fmt.Println(sessionGlob)*/
 
+		//	session, _ := utils.SessionStore.Get(req, utils.SessionName)
+
 		utils.ExecuteTemplate(res, "index.html", struct {
 			Title string
 			Login interface{}

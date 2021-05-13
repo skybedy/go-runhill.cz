@@ -90,6 +90,12 @@ type PersonFromForm struct {
 	Password   string
 }
 
+type passwordChange struct {
+	PasswordOld        string
+	PasswordNew        string
+	PasswordNewConfirm string
+}
+
 func loginEmailHandler() http.Handler {
 	fn := func(res http.ResponseWriter, req *http.Request) {
 		var person Person
@@ -151,6 +157,7 @@ func loginEmailHandler() http.Handler {
 							session.Values[sessionIdo] = person.Ido
 							session.Values[sessionEmail] = person.Email
 							session.Values[sessionVerify] = true
+							session.Values[sessionOauth] = "false" //jako, že to není od Google, apod.. je to debilní, vím, ale když jsem tady dal bolean, tak to nefungovalo
 							session.Save(res)
 
 							sessionUrl, err4 := utils.SessionStore.Get(req, "url")
@@ -243,7 +250,7 @@ func loginOauthHandler() http.Handler {
 					session.Values[sessionVerify] = true
 					session.Values[sessionFirstName] = person.Firstname
 					session.Values[sessionIdo] = person.Ido
-					//session.Values[sessionOauth] = person.Oauth
+					session.Values[sessionOauth] = "true"
 					session.Values[sessionEmail] = googleUser.Email
 					session.Save(res)
 					http.Redirect(res, req, req.Referer(), http.StatusFound)
@@ -592,9 +599,10 @@ func accountDeleteHandler() http.Handler {
 
 }
 
-func accountChangeHandler(res http.ResponseWriter, req *http.Request) {
+func accountEditHandler(res http.ResponseWriter, req *http.Request) {
 
 	if req.Method == "GET" {
+
 		var person Person
 		session, err := utils.SessionStore.Get(req, utils.SessionName)
 
@@ -602,14 +610,14 @@ func accountChangeHandler(res http.ResponseWriter, req *http.Request) {
 			fmt.Println(err)
 			//http.Redirect(res, req, "/", http.StatusFound)
 		} else {
-			sql1 := "SELECT jmeno,prijmeni,rocnik, pohlavi, email FROM osoby WHERE ido = ?"
-			err1 := db.Mdb.QueryRow(sql1, fmt.Sprint(session.Values[sessionIdo])).Scan(&person.Firstname, &person.Surname, &person.Birdthyear, &person.Gender, &person.Email)
+			sql1 := "SELECT ido,jmeno,prijmeni,rocnik, pohlavi, email FROM osoby WHERE ido = ?"
+			err1 := db.Mdb.QueryRow(sql1, fmt.Sprint(session.Values[sessionIdo])).Scan(&person.Ido, &person.Firstname, &person.Surname, &person.Birdthyear, &person.Gender, &person.Email)
 			if err1 != nil {
 				//fmt.Println(err)
 				log.Fatal(err1)
 			}
 
-			utils.ExecuteTemplate(res, "account-summary.html", struct {
+			utils.ExecuteTemplate(res, "account-edit.html", struct {
 				Title   string
 				Login   interface{}
 				Person  Person
@@ -624,48 +632,68 @@ func accountChangeHandler(res http.ResponseWriter, req *http.Request) {
 			})
 		}
 
-	} else {
-		session, err := utils.SessionStore.Get(req, utils.SessionName)
+	} else if req.Method == "POST" {
+		//session, err := utils.SessionStore.Get(req, utils.SessionName)
+		//if err != nil {
+		//	fmt.Println(err)
+		//	http.Redirect(res, req, "/", http.StatusFound)
+		//} else {
+
+		res.Header().Set("Content-Type", "application/json")
+		decoder := json.NewDecoder(req.Body)
+		var person Person
+		err := decoder.Decode(&person)
+
 		if err != nil {
-			fmt.Println(err)
-			http.Redirect(res, req, "/", http.StatusFound)
-		} else {
-
-			sql1 := "UPDATE osoby SET jmeno='" + req.FormValue("firstname") + "',prijmeni='" + req.FormValue("surname") +
-				"',rocnik=" + req.FormValue("birdthyear") + ",pohlavi='" + req.FormValue("gender") + "',jmeno_bd=toSlug('" + req.FormValue("firstname") + "'),prijmeni_bd=toSlug('" + req.FormValue("surname") + "')" +
-				" WHERE ido = " + fmt.Sprint(session.Values[sessionIdo])
-			_, err1 := db.Mdb.Exec(sql1)
-
-			if err1 != nil {
-				panic(err.Error())
-			}
-
-			/*
-				http.Redirect(res, req, "/message?from=editpersonsuccess&alert=primary", http.StatusFound)
-
-				utils.ExecuteTemplate(res, "message.html", struct {
-					Title   string
-					Login   interface{}
-					Message string
-				}{
-					Title:   "After...",
-					Login:   utils.SessionExists(utils.SessionName, req),
-					Message: "Údaje byly změněny a uloženy",
-				})*/
+			panic(err)
 		}
+
+		sql1 := "UPDATE osoby SET jmeno='" + person.Firstname + "',prijmeni='" + person.Surname +
+			"',rocnik=" + person.Birdthyear + ",pohlavi='" + person.Gender + "',jmeno_bd=toSlug('" + person.Firstname + "'),prijmeni_bd=toSlug('" + person.Surname + "')" +
+			" WHERE ido = " + person.Ido
+		_, err1 := db.Mdb.Exec(sql1)
+
+		var jsonResponse []byte
+		if err1 != nil {
+			//panic(err.Error())
+			jsonResponse, _ = json.Marshal(map[string]string{"status": "error"})
+		} else {
+			jsonResponse, _ = json.Marshal(map[string]string{"status": "ok"})
+		}
+		res.Write(jsonResponse)
 
 	}
 
 }
 
 func passwordChangeHandler(res http.ResponseWriter, req *http.Request) {
-	var murinoha, hlaska, chybi string
+	if req.Method == "POST" {
+		res.Header().Set("Content-Type", "application/json")
+
+		decoder := json.NewDecoder(req.Body)
+		var pch passwordChange
+		err := decoder.Decode(&pch)
+		if err != nil {
+			panic(err)
+		}
+
+		fmt.Println(pch)
+	} else {
+		passwordChangeTemplate(res, req)
+	}
+
+}
+
+/*
+func passwordChangeHandlerZal(res http.ResponseWriter, req *http.Request) {
+	var chybi string
 	passwordOld, passwordNew, passwordNewConfirm := true, true, true
 	var person Person
 	session, err := utils.SessionStore.Get(req, utils.SessionName)
+	var murinoha string
 	if err != nil {
 		murinoha = "nologin"
-		passwordChangeTemplate(res, req, murinoha, hlaska)
+		passwordChangeTemplate(res, req)
 		return
 	}
 
@@ -687,7 +715,7 @@ func passwordChangeHandler(res http.ResponseWriter, req *http.Request) {
 		if passwordOld != true || passwordNew != true || passwordNewConfirm != true {
 			murinoha = "no_all_data"
 			hlaska = "Nebyly zadány všecky údaje, chybí " + chybi
-			passwordChangeTemplate(res, req, murinoha, hlaska)
+			passwordChangeTemplate(res, req)
 			return
 		}
 
@@ -700,13 +728,13 @@ func passwordChangeHandler(res http.ResponseWriter, req *http.Request) {
 
 		if utils.ComparePasswords(person.Password, req.FormValue("passwordOld")) != true {
 			murinoha = "old_password_equal_false"
-			passwordChangeTemplate(res, req, murinoha, hlaska)
+			passwordChangeTemplate(res, req)
 			return
 		}
 
 		if req.FormValue("passwordNew") != req.FormValue("passwordNewConfirm") {
 			murinoha = "new_password_equal_false"
-			passwordChangeTemplate(res, req, murinoha, hlaska)
+			passwordChangeTemplate(res, req)
 			return
 		}
 
@@ -729,27 +757,23 @@ func passwordChangeHandler(res http.ResponseWriter, req *http.Request) {
 		_, err1 := utils.SessionStore.Get(req, "password_changed_session")
 		if err1 != nil {
 			murinoha = "form"
-			passwordChangeTemplate(res, req, murinoha, hlaska)
+			passwordChangeTemplate(res, req)
 			return
 		}
 		murinoha = "password_changed"
 		utils.SessionStore.Destroy(res, "password_changed_session")
-		passwordChangeTemplate(res, req, murinoha, hlaska)
+		passwordChangeTemplate(res, req)
 
 	}
 
-}
+} */
 
-func passwordChangeTemplate(res http.ResponseWriter, req *http.Request, murinoha string, hlaska string) {
+func passwordChangeTemplate(res http.ResponseWriter, req *http.Request) {
 	utils.ExecuteTemplate(res, "password-change.html", struct {
-		Title    string
-		Login    interface{}
-		Murinoha string
-		Hlaska   string
+		Title string
+		Login interface{}
 	}{
-		Title:    "Změna hesla",
-		Login:    utils.SessionExists(utils.SessionName, req),
-		Murinoha: murinoha,
-		Hlaska:   hlaska,
+		Title: "Změna hesla",
+		Login: utils.SessionExists(utils.SessionName, req),
 	})
 }

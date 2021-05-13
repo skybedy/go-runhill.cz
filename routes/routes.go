@@ -35,7 +35,7 @@ func NewRouter() *mux.Router {
 	router.HandleFunc("/registration-ouath", registrationOauthHandler).Methods("GET")
 	router.HandleFunc("/verify/{verifystr}", verifyHandler).Methods("GET")
 	router.HandleFunc("/registration", registrationHandler)
-	router.HandleFunc("/account-change", accountChangeHandler)
+	router.HandleFunc("/account-edit", accountEditHandler)
 	router.HandleFunc("/filetesty", Filetesty).Methods("POST")
 	router.HandleFunc("/message", messageHandler).Methods("GET")
 	router.HandleFunc("/etapy", etapyHandler).Methods("GET")

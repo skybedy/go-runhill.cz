@@ -34,7 +34,7 @@ func SecToTime(secinput int) string {
 }
 
 func SessionExists(SessionName string, r *http.Request) map[string]interface{} {
-	arr := map[string]interface{}{"verify": false, "firstname": "", "oauth": ""}
+	arr := map[string]interface{}{"verify": false, "firstname": "", "oauth": ""} //když jsem tady pro oauth dal bolean, tak to nefungovalo
 	val, _ := SessionStore.Get(r, SessionName)
 	if val != nil {
 		if val.Values["sessionVerify"] == true {

@@ -1,3 +1,59 @@
+if(document.getElementById('accountEditContainer') != null) {
+  new Vue({
+    delimiters: ['${', '}'],
+    el: '#accountEditContainer',
+    data:{
+      formular: true,
+      hlaska: false,
+      hlaskaText: "",
+      alertDanger : false,
+      alertPrimary: false,
+    },
+    methods: {
+      accountEdit(e){
+        try{
+          (async () => {
+            
+            posts = {
+              firstname: e.target.firstname.value,
+              surname: e.target.surname.value,
+              gender: e.target.gender.value,
+              birdthyear: e.target.birdthyear.value,
+              ido: e.target.ido.value
+            }
+
+            const response = await  axios.post('/account-edit',posts);
+            this.formular = false;
+            this.hlaska = true;
+            if(response.data.status == "ok"){
+              this.hlaskaText = "Účet změněn";
+              this.alertPrimary = true
+            }else if(response.data.status == "error") {
+              this.hlaskaText = "Error";
+              this.alertDanger = true
+            }
+
+
+
+
+
+          })();
+
+        }catch(err){
+          console.log(err)
+        }
+      }
+
+    }
+  })
+}
+
+
+
+
+
+
+
 if(document.getElementById('loginContainer') != null){
 
   new Vue({
@@ -58,11 +114,6 @@ if(document.getElementById('loginContainer') != null){
                 
               }
             }
-
-
-
-
-
           })();
         }catch(err){
 
@@ -91,7 +142,10 @@ if(document.getElementById('registrationContainer') != null){
           gender:"",
           birdthyear:"",
           email:"",
-          password:""
+          password:"",
+          passwordOld:"",
+          passwordNew:"",
+          passwordNewConfirm:""
         },
 
       },
@@ -143,6 +197,16 @@ if(document.getElementById('registrationContainer') != null){
                     }
                   }
                 }
+
+            })();
+          }catch(err){
+
+          }
+        },
+        passwordChange(){
+          try{
+            (async () => {
+              const response = await  axios.post('/password-change',this.posts);
 
             })();
           }catch(err){

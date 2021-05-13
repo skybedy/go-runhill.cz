@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="cz">
+{{template "head"}}
+    <body>
+{{template "menu" .Login}}
+    <main  id="accountEditContainer" class="container">
+    <template v-if="formular">
+      <div class="w-25 mx-auto">
+        <div class="p-4  border rounded-2">
+          <form method="post"  v-on:submit.prevent = "accountEdit">
+            <h2 class="h5 fw-normal text-center">Zkontrolujte, případně změňte</h2>
+            <input type="hidden" name="ido" value="{{.Person.Ido}}" />
+            <label for="inputName" class="visually-hidden">Jméno</label>
+            <input id="inputName" class="form-control mt-1" name="firstname" value="{{.Person.Firstname}}" required>
+
+            <label for="inputSurname" class="visually-hidden">Příjmení</label>
+            <input id="inputSurname" class="form-control mt-1" name="surname" value="{{.Person.Surname}}" required>
+            <select name="gender" class="form-select mt-1" required>
+                <option value="" selected disabled>Pohlaví</option>
+                <option value="Z" {{if eq $.Person.Gender "Z"}}selected{{end}}>Žena</option>
+                <option value="M" {{if eq $.Person.Gender "M"}}selected{{end}}>Muž</option>
+            </select>
+             <select name="birdthyear" class="form-select mt-1"  required>
+                <option value="" selected disabled>Ročník</option>
+                {{range $val := .Years}}<option value="{{$val}}" {{if eq $val $.Person.Birdthyear}}selected{{end}}>{{$val}}</option>{{end}}
+             </select>
+           <label for="inputEmail" class="visually-hidden">Email address</label>
+            <input  name="email" type="email" id="inputEmail" class="form-control mt-1" placeholder="Email" value="{{.Person.Email}}" readonly>
+            <button class="w-100 btn btn-lg btn-danger mt-1" type="submit">Změnit</button>
+          </form>
+        </div>
+      </div>
+    </template>
+    <div  v-bind:class="{'alert-primary' : alertPrimary,'alert-danger' : alertDanger}" class="alert text-center" role="alert" v-html="hlaskaText" v-if="hlaska"></div>
+{{template "footer"}}
+        </main>
+        <script src="static/js/def.js"></script>
+    </body>
+</html>
