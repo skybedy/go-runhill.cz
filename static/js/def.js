@@ -1,3 +1,44 @@
+/*Vue.component('account-delete', {
+  template: '<div class="w-25 mx-auto"><div class="p-4  border rounded-2"></div></div>'
+                                                                                                                                                                                                                                                                                                              </template>'
+})*/
+
+Vue.component('account-delete', {
+  template: '<div class="alert alert-danger text-center" role="alert"> Chystáte se smazat účet, myslíte-li to opravdu vážně, pokračujte <a href="#" v-on:click.prevent = "test">zde</a>.</div>',
+  methods:{
+    test(){
+      alert()
+    }
+  }
+
+})
+
+
+if(document.getElementById('accountDelete') != null) {
+  new Vue({
+    delimiters: ['${', '}'],
+    el: '#accountDelete'
+  })
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 if(document.getElementById('accountEditContainer') != null) {
   new Vue({
     delimiters: ['${', '}'],
@@ -207,6 +248,24 @@ if(document.getElementById('registrationContainer') != null){
           try{
             (async () => {
               const response = await  axios.post('/password-change',this.posts);
+              this.formular = false;
+              this.hlaska = true;
+              if(response.data.status == "ok"){
+                this.hlaskaText = "Heslo bylo úspěšně změněno"
+                this.alertPrimary = true
+              }else if(response.data.status == "error") {
+                switch(response.data.code){
+                  case 21:
+                    this.hlaskaText = "Zadali jste nesprávné heslo, <a href=\"/password-change\">zkuste to prosím znovu</a>"
+                    this.alertDanger = true
+                  break;
+                  case 22:
+                    this.hlaskaText = "Nová hesla se neshodují, <a href=\"/password-change\">zkuste to prosím znovu</a>"
+                    this.alertDanger = true
+                  break;
+                }
+
+              }
 
             })();
           }catch(err){

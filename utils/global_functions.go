@@ -68,6 +68,7 @@ func PasswordGenerator(plainPassword string) string {
 func ComparePasswords(hashedPassword *string, plainPassword string) bool {
 	// Since we'll be getting the hashed password from the DB it
 	// will be a string so we'll need to convert it to a byte slice
+
 	byteHash := []byte(*hashedPassword)
 	err := bcrypt.CompareHashAndPassword(byteHash, []byte(plainPassword))
 	if err != nil {

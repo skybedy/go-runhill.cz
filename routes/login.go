@@ -94,6 +94,7 @@ type passwordChange struct {
 	PasswordOld        string
 	PasswordNew        string
 	PasswordNewConfirm string
+	PasswordFromDb     string
 }
 
 func loginEmailHandler() http.Handler {
@@ -560,6 +561,18 @@ func accountSummaryHandler(res http.ResponseWriter, req *http.Request) {
 
 func accountDeleteHandler() http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		utils.ExecuteTemplate(res, "account-delete.html", struct {
+			Title string
+			Login interface{}
+		}{
+			Title: "",
+			Login: utils.SessionExists(utils.SessionName, req),
+		})
+	})
+}
+
+func accountDeleteHandlerZal() http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		session, err := utils.SessionStore.Get(req, utils.SessionName)
 		if err != nil {
 			fmt.Println(err)
@@ -668,6 +681,8 @@ func accountEditHandler(res http.ResponseWriter, req *http.Request) {
 
 func passwordChangeHandler(res http.ResponseWriter, req *http.Request) {
 	if req.Method == "POST" {
+		session, _ := utils.SessionStore.Get(req, utils.SessionName)
+		var jsonResponse []byte
 		res.Header().Set("Content-Type", "application/json")
 
 		decoder := json.NewDecoder(req.Body)
@@ -677,9 +692,39 @@ func passwordChangeHandler(res http.ResponseWriter, req *http.Request) {
 			panic(err)
 		}
 
-		fmt.Println(pch)
+		sql1 := "SELECT password FROM osoby WHERE ido LIKE ?"
+		err1 := db.Mdb.QueryRow(sql1, session.Values[sessionIdo]).Scan(&pch.PasswordFromDb)
+		if err1 != nil {
+			fmt.Println(err1)
+			return
+		}
+
+		if utils.ComparePasswords(&pch.PasswordFromDb, pch.PasswordOld) != true {
+			jsonResponse, _ = json.Marshal(map[string]interface{}{"status": "error", "code": 21})
+		} else {
+			if pch.PasswordNew != pch.PasswordNewConfirm {
+				jsonResponse, _ = json.Marshal(map[string]interface{}{"status": "error", "code": 22})
+			} else {
+				password := utils.PasswordGenerator(pch.PasswordNew)
+				sql2 := "UPDATE osoby SET password = '" + password + "' WHERE ido = " + fmt.Sprint(session.Values[sessionIdo])
+				_, err2 := db.Mdb.Exec(sql2)
+				fmt.Println(sql2)
+
+				if err2 != nil {
+					panic(err.Error())
+				}
+				jsonResponse, _ = json.Marshal(map[string]interface{}{"status": "ok"})
+			}
+		}
+		res.Write(jsonResponse)
 	} else {
-		passwordChangeTemplate(res, req)
+		utils.ExecuteTemplate(res, "password-change.html", struct {
+			Title string
+			Login interface{}
+		}{
+			Title: "Změna hesla",
+			Login: utils.SessionExists(utils.SessionName, req),
+		})
 	}
 
 }
@@ -726,6 +771,8 @@ func passwordChangeHandlerZal(res http.ResponseWriter, req *http.Request) {
 			return
 		}
 
+
+
 		if utils.ComparePasswords(person.Password, req.FormValue("passwordOld")) != true {
 			murinoha = "old_password_equal_false"
 			passwordChangeTemplate(res, req)
@@ -767,13 +814,3 @@ func passwordChangeHandlerZal(res http.ResponseWriter, req *http.Request) {
 	}
 
 } */
-
-func passwordChangeTemplate(res http.ResponseWriter, req *http.Request) {
-	utils.ExecuteTemplate(res, "password-change.html", struct {
-		Title string
-		Login interface{}
-	}{
-		Title: "Změna hesla",
-		Login: utils.SessionExists(utils.SessionName, req),
-	})
-}
