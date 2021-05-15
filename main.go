@@ -40,7 +40,7 @@ func main() {
 		fmt.Printf("Unable to decode into struct, %v", err)
 	}
 
-	db.Mdb, err = sql.Open(configuration.Database.DBDriver, configuration.Database.DBUser+":"+configuration.Database.DBPassword+"@/"+configuration.Database.DBName)
+	db.Mdb, err = sql.Open(configuration.Database.DBDriver, configuration.Database.DBUser+":"+configuration.Database.DBPassword+"@tcp(localhost)/"+configuration.Database.DBName)
 	if err != nil {
 		panic(err.Error())
 	}

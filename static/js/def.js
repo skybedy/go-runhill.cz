@@ -1,23 +1,89 @@
-/*Vue.component('account-delete', {
-  template: '<div class="w-25 mx-auto"><div class="p-4  border rounded-2"></div></div>'
-                                                                                                                                                                                                                                                                                                              </template>'
-})*/
+
+
+
 
 Vue.component('account-delete', {
-  template: '<div class="alert alert-danger text-center" role="alert"> Chystáte se smazat účet, myslíte-li to opravdu vážně, pokračujte <a href="#" v-on:click.prevent = "test">zde</a>.</div>',
+  template: '<div><div v-if="alert1" class="alert alert-danger text-center" role="alert">Chystáte se smazat účet, myslíte-li to opravdu vážně, pokračujte <a href="#" v-on:click.prevent="challenge">zde</a>.</div><button v-else-if="alert2" class="w-100 btn btn-lg btn-danger mt-1"  v-on:click="accountDelete">Smazat účet</button> <div  v-else class="alert alert-primary text-center" role="alert"> Váš účet byl smazán, kdykoli se samozřejmě můžete přihlásit znovu.</div></div>',
+ 
+  data:function(){
+    return{
+      alert1:true,
+      alert2:false,
+      alert3:false
+    }
+  },
   methods:{
-    test(){
-      alert()
+    challenge(){
+      this.alert1 = false,
+      this.alert2 = true
+    },
+    accountDelete(){
+      try{
+        (async () => {
+          const response = await  axios.delete('/account-delete');
+          if(response.data.status == "ok"){
+            this.alert2 = false,
+            this.alert3 = true
+            document.getElementById("tlacitko").innerHTML =  '<a class="btn btn-outline-danger" href="/login">Přihlásit se</a>';
+
+          }else if(response.data.status == "error") {
+         
+          }
+        })();
+      }catch(err){
+
+      }
     }
   }
 
+
 })
+
+/*
+if(document.getElementById('accountDelete') != null) {
+  new Vue({
+    delimiters: ['${', '}'],
+    el: '#accountDelete',
+    data:{
+      alert1:true,
+      alert2:false,
+      alert3:false
+    },
+    methods:{
+      challenge(){
+        this.alert1 = false,
+        this.alert2 = true
+      },
+      accountDelete(){
+        try{
+          (async () => {
+            const response = await  axios.delete('/account-delete');
+            if(response.data.status == "ok"){
+              this.alert2 = false,
+              this.alert3 = true
+              document.getElementById("tlacitko").innerHTML =  '<a class="btn btn-outline-danger" href="/login">Přihlásit se</a>';
+
+            }else if(response.data.status == "error") {
+           
+            }
+          })();
+        }catch(err){
+
+        }
+      }
+    }
+  
+
+  })
+}*/
+
+
 
 
 if(document.getElementById('accountDelete') != null) {
   new Vue({
     delimiters: ['${', '}'],
-    el: '#accountDelete'
+    el: '#accountDelete',
   })
 }
 
@@ -67,6 +133,7 @@ if(document.getElementById('accountEditContainer') != null) {
             this.formular = false;
             this.hlaska = true;
             if(response.data.status == "ok"){
+              document.getElementById("tlacitko").innerHTML =  '<div  class="dropdown"><button  class="btn btn-outline-primary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">'+posts.firstname+'</button><ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1"><li><a class="dropdown-item" href="/account-summary">Můj účet</a></li><li><a class="dropdown-item" href="/account-delete/challenge">Smazat účet</a></li><li><a class="dropdown-item" href="/logout">Odhlásit se</a></li></ul></div>';
               this.hlaskaText = "Účet změněn";
               this.alertPrimary = true
             }else if(response.data.status == "error") {
@@ -127,6 +194,18 @@ if(document.getElementById('loginContainer') != null){
                   //this.alertPrimary = true,
                   //this.loginPassive = false,
                   //this.loginActive = true
+
+
+
+
+                  if(response.data.referer == ""){
+                    response.data.referer = "/" //pro případ, když není předposlední stránka
+                  }else{
+                     var refererSplit = response.data.referer.split("/")
+                     if(refererSplit[3] === "verify" || refererSplit[3] === "login"){
+                      response.data.referer = "/"
+                     }
+                  }
                   document.getElementById("tlacitko").innerHTML =  '<div  class="dropdown"><button  class="btn btn-outline-primary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">'+response.data.firstname+'</button><ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1"><li><a class="dropdown-item" href="/account-summary">Můj účet</a></li><li><a class="dropdown-item" href="/account-delete/challenge">Smazat účet</a></li><li><a class="dropdown-item" href="/logout">Odhlásit se</a></li></ul></div>';
                   window.location = response.data.referer;
                 break;

@@ -1,3 +1,0 @@
-- po přihkášení z verifikační stránky se to přesměruje na tu verifikační stránku, což je blbost, asi by to mělo jít na homepage
-- po změnění údajů by se měly poslat nové session pro případ, že se třeba změní jméno, jinak tam zůstane viset staré
-- když se někdo odhlásí z odkazu změna hesla, nebo vlastně i změna údajů, tak tam zůstane viset formulář což je blbost

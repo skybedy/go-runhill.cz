@@ -44,7 +44,7 @@ func loginHandler(res http.ResponseWriter, req *http.Request) {
 	//facebook.StateHandler(stateConfig, facebook.LoginHandler(oauth2ConfigFb, nil))
 	sessionUrl := utils.SessionStore.New("url")
 	sessionUrl.Values["url"] = fmt.Sprint(req.URL)
-	sessionUrl.Values["referer"] = req.Referer()
+	sessionUrl.Values["refererBeforeLast"] = req.Referer()
 	sessionUrl.Save(res)
 
 	utils.ExecuteTemplate(res, "login.html", struct {
@@ -161,27 +161,16 @@ func loginEmailHandler() http.Handler {
 							session.Values[sessionOauth] = "false" //jako, že to není od Google, apod.. je to debilní, vím, ale když jsem tady dal bolean, tak to nefungovalo
 							session.Save(res)
 
-							sessionUrl, err4 := utils.SessionStore.Get(req, "url")
-							if err4 != nil {
-								fmt.Println(err4)
-							}
-							fmt.Println(sessionUrl.Values["url"])
-							jsonResponse, err2 := json.Marshal(utils.HttpResponse{Status: "ok", Code: 11, Firstname: person.Firstname, Refererer: fmt.Sprint(sessionUrl.Values["referer"])})
+							sessionUrl, _ := utils.SessionStore.Get(req, "url")
+
+							jsonResponse, err2 := json.Marshal(utils.HttpResponse{Status: "ok", Code: 11, Firstname: person.Firstname, Refererer: fmt.Sprint(sessionUrl.Values["refererBeforeLast"])})
 							if err2 != nil {
 								//nejaka chyba json.Marshal vy tu asi mela prijit
 							}
+							utils.SessionStore.Destroy(res, "url")
 							res.Write(jsonResponse) // je to ok
 
-							/*
-								refererRoute := strings.Split(req.Referer(), "/")
-								if refererRoute[3] == "registration" || refererRoute[3] == "registration#" || refererRoute[3] == "login" || refererRoute[3] == "account" {
-									http.Redirect(res, req, "/", http.StatusFound)
-								} else {
-									http.Redirect(res, req, req.Referer(), http.StatusFound)
-								}*/
-
 						} else { //pokud heslo nesouhlasí
-							//utils.Message(res, req, "alert-danger", "Uvedené heslo k emailu "+req.FormValue("email")+" není správné, zkuste to znovu.")
 							jsonResponse, err2 := json.Marshal(utils.HttpResponse{Status: "error", Code: 14})
 							if err2 != nil {
 								//nejaka chyba json.Marshal vy tu asi mela prijit
@@ -202,17 +191,9 @@ func loginEmailHandler() http.Handler {
  */
 func loginOauthHandler() http.Handler {
 	fn := func(res http.ResponseWriter, req *http.Request) {
-		s, e := utils.SessionStore.Get(req, "url")
-		if e != nil {
-			fmt.Println(e)
-		}
-		fmt.Println(s)
-
 		ctx := req.Context()
 		googleUser, err := google.UserFromContext(ctx)
-
 		if err != nil {
-
 			http.Error(res, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -229,32 +210,22 @@ func loginOauthHandler() http.Handler {
 			}
 
 			if person.Password != nil { //pokud tam je heslo, tzn. už tam je registrace, ale ne přes OAuth
-				//sessionUrl, err := utils.SessionStore.Get(req, "url")
-
-				//utils.SessionStore.Destroy(res, "url")
-				//if err != nil {
-				//	fmt.Println(err)
-				//}
-				//session := utils.SessionStore.New("registration")
-				//session.Values["email"] = googleUser.Email
-				//session.Values["hlaska"] = "email_password_exists_already"
-				//session.Save(res)
 				res.Write([]byte("Registrace pod emailem " + googleUser.Email + " už existuje a je použit způsob přihlašování pomocí hesla, tudíž není možno použít přihlášení pomocí třetí strany"))
-				//http.Redirect(res, req, fmt.Sprint(sessionUrl.Values["url"]), http.StatusFound)
 
 			} else { //pokud tam heslo není, tak se můžeme přihlásit
-
 				if person.Auth == 0 {
-					http.Redirect(res, req, "/message?from=loginnoauthorise&alert=danger", http.StatusFound)
+					res.Write([]byte("Zatím nebyla provedena verifikace účtu, která byla zaslána na email " + googleUser.Email))
 				} else {
-
 					session.Values[sessionVerify] = true
 					session.Values[sessionFirstName] = person.Firstname
 					session.Values[sessionIdo] = person.Ido
 					session.Values[sessionOauth] = "true"
 					session.Values[sessionEmail] = googleUser.Email
 					session.Save(res)
-					http.Redirect(res, req, req.Referer(), http.StatusFound)
+
+					sessionUrl, _ := utils.SessionStore.Get(req, "url")
+					http.Redirect(res, req, fmt.Sprint(sessionUrl.Values["refererBeforeLast"]), http.StatusFound)
+					utils.SessionStore.Destroy(res, "url")
 				}
 			}
 
@@ -263,7 +234,6 @@ func loginOauthHandler() http.Handler {
 			session.Values[sessionFirstName] = googleUser.GivenName
 			session.Values[sessionLastName] = googleUser.FamilyName
 			session.Values[sessionEmail] = googleUser.Email
-			//session.Values["oauth"] = "G"
 			session.Save(res)
 			http.Redirect(res, req, "/registration-ouath", http.StatusFound)
 		}
@@ -281,7 +251,6 @@ func checkUserExistsHandler(res http.ResponseWriter, req *http.Request) {
 		panic(err)
 	}
 	json.NewEncoder(res).Encode(exists)
-	//res.Write([]byte("kkokoko"))
 }
 
 func checkUserExists(email string) bool {
@@ -297,15 +266,20 @@ func checkUserExists(email string) bool {
 
 // logoutHandler destroys the session on POSTs and redirects to home.
 func logoutHandler(res http.ResponseWriter, req *http.Request) {
-	if req.Method == "GET" {
-		utils.SessionStore.Destroy(res, utils.SessionName)
-	}
+	session, _ := utils.SessionStore.Get(req, utils.SessionName)
+	if session != nil {
+		if req.Method == "GET" {
+			utils.SessionStore.Destroy(res, utils.SessionName)
+		}
 
-	refererRoute := strings.Split(req.Referer(), "/")
-	if refererRoute[3] == "login-form" || refererRoute[3] == "login-form#" || refererRoute[3] == "login" || refererRoute[3] == "account" {
-		http.Redirect(res, req, "/", http.StatusFound)
+		refererRoute := strings.Split(req.Referer(), "/")
+		if refererRoute[3] == "login-form" || refererRoute[3] == "login-form#" || refererRoute[3] == "login" || refererRoute[3] == "account-edit" || refererRoute[3] == "password-change" {
+			http.Redirect(res, req, "/", http.StatusFound)
+		} else {
+			http.Redirect(res, req, req.Referer(), http.StatusFound)
+		}
 	} else {
-		http.Redirect(res, req, req.Referer(), http.StatusFound)
+		http.Redirect(res, req, "/login", http.StatusFound)
 	}
 }
 
@@ -420,32 +394,15 @@ func registrationHandler(res http.ResponseWriter, req *http.Request) {
 
 		}
 	} else {
-		registrationTemplate(res, req, "form", "")
-
-		/*
-			session, err := utils.SessionStore.Get(req, "registration")
-			if err != nil {
-				fmt.Println("tu")
-				registrationTemplate(res, req, "form", "")
-			} else {/*
-
-				//fmt.Println("tutady")
-
-				/*
-					if session.Values["hlaska"] == "email_exists_already" {
-						//utils.SessionStore.Destroy(res, "registration")
-						registrationTemplate(res, req, "email_exists_already", fmt.Sprint(session.Values["email"]))
-						//return
-					} else {
-						//utils.SessionStore.Destroy(res, "registration")
-						registrationTemplate(res, req, "registration_success", fmt.Sprint(session.Values["email"]))
-					}*/
-
-		/*	utils.SessionStore.Destroy(res, "registration") //musí to být před template
-
-			registrationTemplate(res, req, fmt.Sprint(session.Values["hlaska"]), fmt.Sprint(session.Values["email"]))
-
-		}*/
+		utils.ExecuteTemplate(res, "registration.html", struct {
+			Title string
+			Login interface{}
+			Years []string
+		}{
+			Title: "Login",
+			Login: utils.SessionExists(utils.SessionName, req),
+			Years: utils.YearsArr(16),
+		})
 
 	}
 
@@ -459,22 +416,6 @@ func notFoundHandler(res http.ResponseWriter, req *http.Request) {
 	}{
 		Title: "404, stránka nenalezena",
 		Login: utils.SessionExists(utils.SessionName, req),
-	})
-}
-
-func registrationTemplate(res http.ResponseWriter, req *http.Request, murinoha string, email string) {
-	utils.ExecuteTemplate(res, "registration.html", struct {
-		Title    string
-		Login    interface{}
-		Years    []string
-		Murinoha string
-		Email    string
-	}{
-		Title:    "Login",
-		Login:    utils.SessionExists(utils.SessionName, req),
-		Years:    utils.YearsArr(16),
-		Murinoha: murinoha,
-		Email:    email,
 	})
 }
 
@@ -529,99 +470,47 @@ func verifyHandler(res http.ResponseWriter, req *http.Request) {
 
 }
 
-func accountSummaryHandler(res http.ResponseWriter, req *http.Request) {
-	var person Person
-	session, err := utils.SessionStore.Get(req, utils.SessionName)
-
-	if err != nil {
-		fmt.Println(err)
-		http.Redirect(res, req, "/", http.StatusFound)
-	} else {
-		sql1 := "SELECT jmeno,prijmeni,rocnik, pohlavi, email FROM osoby WHERE ido = ?"
-		err1 := db.Mdb.QueryRow(sql1, fmt.Sprint(session.Values[sessionIdo])).Scan(&person.Firstname, &person.Surname, &person.Birdthyear, &person.Gender, &person.Email)
-		if err1 != nil {
-			log.Fatal(err1)
-		}
-
-		utils.ExecuteTemplate(res, "account-summary.html", struct {
-			Title   string
-			Login   interface{}
-			Person  Person
-			Years   []string
-			Session *sessions.Session
-		}{
-			Title:   "",
-			Login:   utils.SessionExists(utils.SessionName, req),
-			Person:  person,
-			Years:   utils.YearsArr(16),
-			Session: session,
-		})
-	}
-}
-
 func accountDeleteHandler() http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		utils.ExecuteTemplate(res, "account-delete.html", struct {
-			Title string
-			Login interface{}
-		}{
-			Title: "",
-			Login: utils.SessionExists(utils.SessionName, req),
-		})
-	})
-}
-
-func accountDeleteHandlerZal() http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		session, err := utils.SessionStore.Get(req, utils.SessionName)
-		if err != nil {
-			fmt.Println(err)
-			http.Redirect(res, req, "/", http.StatusFound)
-		} else {
-			vars := mux.Vars(req)
-			action := vars["action"]
-
-			if action == "delete" {
-				sql1 := "DELETE FROM osoby WHERE ido = " + fmt.Sprint(session.Values[sessionIdo])
-				_, err1 := db.Mdb.Exec(sql1)
-
-				if err1 != nil {
-					fmt.Println(err)
-					//panic(err.Error())
-				}
-
-				utils.SessionStore.Destroy(res, utils.SessionName)
-				http.Redirect(res, req, "/message?from=accountdelete&alert=primary", http.StatusFound)
-
-			} else {
-
+		session, _ := utils.SessionStore.Get(req, utils.SessionName)
+		if session != nil {
+			if req.Method == "GET" {
 				utils.ExecuteTemplate(res, "account-delete.html", struct {
-					Title  string
-					Login  interface{}
-					Action string
+					Title string
+					Login interface{}
 				}{
-					Title:  "",
-					Login:  utils.SessionExists(utils.SessionName, req),
-					Action: action,
+					Title: "",
+					Login: utils.SessionExists(utils.SessionName, req),
 				})
+			} else if req.Method == "DELETE" {
+				var jsonResponse []byte
+
+				sql1 := "DELETE FROM osoby WHERE ido = " + fmt.Sprint(session.Values[sessionIdo])
+				fmt.Println(sql1)
+				_, err1 := db.Mdb.Exec(sql1)
+				if err1 != nil {
+					jsonResponse, _ = json.Marshal(map[string]string{"status": "error"})
+				} else {
+					jsonResponse, _ = json.Marshal(map[string]string{"status": "ok"})
+				}
+				utils.SessionStore.Destroy(res, utils.SessionName)
+				res.Write(jsonResponse)
+
 			}
-
+		} else {
+			http.Redirect(res, req, "/login", http.StatusFound)
 		}
-
 	})
-
 }
 
 func accountEditHandler(res http.ResponseWriter, req *http.Request) {
+	session, _ := utils.SessionStore.Get(req, utils.SessionName)
 
 	if req.Method == "GET" {
 
 		var person Person
-		session, err := utils.SessionStore.Get(req, utils.SessionName)
-
-		if err != nil {
-			fmt.Println(err)
-			//http.Redirect(res, req, "/", http.StatusFound)
+		if session == nil {
+			http.Redirect(res, req, "/login", http.StatusFound)
 		} else {
 			sql1 := "SELECT ido,jmeno,prijmeni,rocnik, pohlavi, email FROM osoby WHERE ido = ?"
 			err1 := db.Mdb.QueryRow(sql1, fmt.Sprint(session.Values[sessionIdo])).Scan(&person.Ido, &person.Firstname, &person.Surname, &person.Birdthyear, &person.Gender, &person.Email)
@@ -646,12 +535,6 @@ func accountEditHandler(res http.ResponseWriter, req *http.Request) {
 		}
 
 	} else if req.Method == "POST" {
-		//session, err := utils.SessionStore.Get(req, utils.SessionName)
-		//if err != nil {
-		//	fmt.Println(err)
-		//	http.Redirect(res, req, "/", http.StatusFound)
-		//} else {
-
 		res.Header().Set("Content-Type", "application/json")
 		decoder := json.NewDecoder(req.Body)
 		var person Person
@@ -671,6 +554,8 @@ func accountEditHandler(res http.ResponseWriter, req *http.Request) {
 			//panic(err.Error())
 			jsonResponse, _ = json.Marshal(map[string]string{"status": "error"})
 		} else {
+			session.Values[sessionFirstName] = person.Firstname
+			session.Save(res)
 			jsonResponse, _ = json.Marshal(map[string]string{"status": "ok"})
 		}
 		res.Write(jsonResponse)
@@ -680,8 +565,8 @@ func accountEditHandler(res http.ResponseWriter, req *http.Request) {
 }
 
 func passwordChangeHandler(res http.ResponseWriter, req *http.Request) {
+	session, _ := utils.SessionStore.Get(req, utils.SessionName)
 	if req.Method == "POST" {
-		session, _ := utils.SessionStore.Get(req, utils.SessionName)
 		var jsonResponse []byte
 		res.Header().Set("Content-Type", "application/json")
 
@@ -718,99 +603,18 @@ func passwordChangeHandler(res http.ResponseWriter, req *http.Request) {
 		}
 		res.Write(jsonResponse)
 	} else {
-		utils.ExecuteTemplate(res, "password-change.html", struct {
-			Title string
-			Login interface{}
-		}{
-			Title: "Změna hesla",
-			Login: utils.SessionExists(utils.SessionName, req),
-		})
+		if session != nil {
+			utils.ExecuteTemplate(res, "password-change.html", struct {
+				Title string
+				Login interface{}
+			}{
+				Title: "Změna hesla",
+				Login: utils.SessionExists(utils.SessionName, req),
+			})
+		} else {
+			http.Redirect(res, req, "/login", http.StatusFound)
+		}
+
 	}
 
 }
-
-/*
-func passwordChangeHandlerZal(res http.ResponseWriter, req *http.Request) {
-	var chybi string
-	passwordOld, passwordNew, passwordNewConfirm := true, true, true
-	var person Person
-	session, err := utils.SessionStore.Get(req, utils.SessionName)
-	var murinoha string
-	if err != nil {
-		murinoha = "nologin"
-		passwordChangeTemplate(res, req)
-		return
-	}
-
-	if req.Method == "POST" {
-
-		if req.FormValue("passwordOld") == "" {
-			passwordOld = false
-			chybi += "staré heslo, "
-		}
-		if req.FormValue("passwordNew") == "" {
-			passwordNew = false
-			chybi += "nové heslo, "
-		}
-		if req.FormValue("passwordNewConfirm") == "" {
-			passwordNewConfirm = false
-			chybi += "potvrzení nového hesla, "
-		}
-
-		if passwordOld != true || passwordNew != true || passwordNewConfirm != true {
-			murinoha = "no_all_data"
-			hlaska = "Nebyly zadány všecky údaje, chybí " + chybi
-			passwordChangeTemplate(res, req)
-			return
-		}
-
-		sql1 := "SELECT password FROM osoby WHERE ido LIKE ?"
-		err1 := db.Mdb.QueryRow(sql1, session.Values[sessionIdo]).Scan(&person.Password)
-		if err1 != nil {
-			fmt.Println(err1)
-			return
-		}
-
-
-
-		if utils.ComparePasswords(person.Password, req.FormValue("passwordOld")) != true {
-			murinoha = "old_password_equal_false"
-			passwordChangeTemplate(res, req)
-			return
-		}
-
-		if req.FormValue("passwordNew") != req.FormValue("passwordNewConfirm") {
-			murinoha = "new_password_equal_false"
-			passwordChangeTemplate(res, req)
-			return
-		}
-
-		password := utils.PasswordGenerator(req.FormValue("passwordNew"))
-		sql2 := "UPDATE osoby SET password = '" + password + "' WHERE ido = " + fmt.Sprint(session.Values[sessionIdo])
-		_, err2 := db.Mdb.Exec(sql2)
-
-		if err2 != nil {
-			panic(err.Error())
-		}
-
-		utils.SessionStore.Destroy(res, utils.SessionName)
-		//murinoha = "password_changed"
-		//passwordChangeTemplate(res, req, murinoha, hlaska)
-		session1 := utils.SessionStore.New("password_changed_session")
-		session1.Save(res)
-		http.Redirect(res, req, "/password-change", http.StatusFound)
-
-	} else { //GET a formular
-		_, err1 := utils.SessionStore.Get(req, "password_changed_session")
-		if err1 != nil {
-			murinoha = "form"
-			passwordChangeTemplate(res, req)
-			return
-		}
-		murinoha = "password_changed"
-		utils.SessionStore.Destroy(res, "password_changed_session")
-		passwordChangeTemplate(res, req)
-
-	}
-
-} */
