@@ -60,8 +60,8 @@ func main() {
 	//Testiky(1930, 1990)
 	router := routes.NewRouter()
 
-	utils.LoadTemplates("templates/*.html")
-	//utils.LoadTemplates("/var/www/timechip.cz/go-www.timechip.cz/templates/*.html")
+	//utils.LoadTemplates("templates/*.html")
+	utils.LoadTemplates("/var/www/runhill.cz/templates/*.html")
 	utils.HttpServer(router, configuration.Server.Port)
 	/*
 		err = http.ListenAndServe("localhost:1306", routes.New())
