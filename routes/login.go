@@ -486,7 +486,6 @@ func accountDeleteHandler() http.Handler {
 				var jsonResponse []byte
 
 				sql1 := "DELETE FROM osoby WHERE ido = " + fmt.Sprint(session.Values[sessionIdo])
-				fmt.Println(sql1)
 				_, err1 := db.Mdb.Exec(sql1)
 				if err1 != nil {
 					jsonResponse, _ = json.Marshal(map[string]string{"status": "error"})
@@ -593,7 +592,6 @@ func passwordChangeHandler(res http.ResponseWriter, req *http.Request) {
 				password := utils.PasswordGenerator(pch.PasswordNew)
 				sql2 := "UPDATE osoby SET password = '" + password + "' WHERE ido = " + fmt.Sprint(session.Values[sessionIdo])
 				_, err2 := db.Mdb.Exec(sql2)
-				fmt.Println(sql2)
 
 				if err2 != nil {
 					panic(err.Error())

@@ -29,7 +29,8 @@ var err error
 
 func main() {
 	viper.SetConfigName("config")
-	viper.AddConfigPath("./config")
+	//viper.AddConfigPath("./config")
+	viper.AddConfigPath("/var/www/runhill.cz/config")
 	viper.SetConfigType("yml")
 	var configuration config.Configurations
 	if err := viper.ReadInConfig(); err != nil {
