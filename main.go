@@ -29,9 +29,10 @@ var err error
 
 func main() {
 	viper.SetConfigName("config")
-	//viper.AddConfigPath("./config")
-	viper.AddConfigPath("/var/www/runhill.cz/config")
+	viper.AddConfigPath(config.ViperConfig)
+	//viper.AddConfigPath("/var/www/runhill.cz/config")
 	viper.SetConfigType("yml")
+
 	var configuration config.Configurations
 	if err := viper.ReadInConfig(); err != nil {
 		fmt.Printf("Error reading config file, %s", err)
@@ -49,7 +50,7 @@ func main() {
 
 	utils.GoogleClientId = configuration.Google.ClientId
 	utils.GoogleClientSecret = configuration.Google.ClientSecret
-	utils.GoogleRedirectUrl = "http://localhost:1305/afterlogin"
+	utils.GoogleRedirectUrl = configuration.Server.Webname + "/" + configuration.Google.RedirectRoute
 	utils.SessionName = configuration.Authentication.SessionName
 	utils.ServerWebname = configuration.Server.Webname
 	utils.SmtpServer = configuration.Email.SmtpServer
@@ -57,11 +58,12 @@ func main() {
 	utils.EmailCharset = configuration.Email.EmailCharset
 	utils.EmailFrom = configuration.Email.EmailFrom
 	utils.EmailFromName = configuration.Email.EmailFromName
+	utils.StaticPath = configuration.Server.StaticPath
 	//Testiky(1930, 1990)
 	router := routes.NewRouter()
 
-	//utils.LoadTemplates("templates/*.html")
-	utils.LoadTemplates("/var/www/runhill.cz/templates/*.html")
+	utils.LoadTemplates(configuration.Server.TemplatePath)
+	//utils.LoadTemplates("/var/www/runhill.cz/templates/*.html")
 	utils.HttpServer(router, configuration.Server.Port)
 	/*
 		err = http.ListenAndServe("localhost:1306", routes.New())

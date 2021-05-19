@@ -49,10 +49,10 @@ func NewRouter() *mux.Router {
 
 	router.Handle("/login-google", google.StateHandler(stateConfig, google.LoginHandler(oauth2Config, nil))).Methods("GET")
 	//router.Handle("/login-facebook", google.StateHandler(stateConfig, google.LoginHandler(oauth2Config, nil))).Methods("GET")
-	router.Handle("/afterlogin", google.StateHandler(stateConfig, google.CallbackHandler(oauth2Config, loginOauthHandler(), nil))).Methods("GET")
+	router.Handle("/loginoauth", google.StateHandler(stateConfig, google.CallbackHandler(oauth2Config, loginOauthHandler(), nil))).Methods("GET")
 
-	staticFileDirectory := http.Dir("/var/www/runhill.cz/static")
-	//staticFileDirectory := http.Dir("./static")
+	//staticFileDirectory := http.Dir("/var/www/runhill.cz/static")
+	staticFileDirectory := http.Dir(utils.StaticPath)
 	staticFileHandler := http.StripPrefix("/static/", http.FileServer(staticFileDirectory))
 	router.PathPrefix("/static/").Handler(staticFileHandler).Methods("GET")
 	return router

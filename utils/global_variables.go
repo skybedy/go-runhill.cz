@@ -13,6 +13,7 @@ var SmtpServer string
 var EmailCharset string
 var EmailFrom string
 var EmailFromName string
+var StaticPath string
 
 type HttpResponse struct {
 	Status    string `json:"status"`

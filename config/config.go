@@ -1,11 +1,12 @@
 package config
 
 const (
-	HTTP_PORT = "1305"
-	DbDriver  = "mysql"
-	DbUser    = "skybedy"
-	DbPass    = "mk1313life"
-	DbName    = "runhill.cz"
+	HTTP_PORT   = "1305"
+	DbDriver    = "mysql"
+	DbUser      = "skybedy"
+	DbPass      = "mk1313life"
+	DbName      = "runhill.cz"
+	ViperConfig = "./config"
 )
 
 // Configurations exported
@@ -22,9 +23,11 @@ type Configurations struct {
 
 // ServerConfigurations exported
 type ServerConfigurations struct {
-	Port    string
-	Name    string
-	Webname string
+	Port         string
+	Name         string
+	Webname      string
+	StaticPath   string
+	TemplatePath string
 }
 
 // DatabaseConfigurations exported

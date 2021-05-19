@@ -2,6 +2,8 @@ server:
   port: "1305"
   name : "http://localhost"
   webname : "http://localhost:1305"
+  staticpath: "./static"
+  templatepath: "templates/*.html"
 
 database:
   dbdriver: "mysql"
@@ -12,7 +14,7 @@ database:
 google:
   clientid: "990650209650-tidphg8cnge229cd3888st5jhkfk1g73.apps.googleusercontent.com"
   clientsecret: "-sosFxmYeGyU-Pe6QutUvGlo"
-  redirectroute : "afterlogin"
+  redirectroute : "loginoauth"
   
 facebook:
   clientid: "872931336611060"
