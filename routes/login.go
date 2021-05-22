@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/dghubble/gologin/v2/facebook"
 	"github.com/dghubble/gologin/v2/google"
 	"github.com/dghubble/sessions"
 	"github.com/gorilla/mux"
@@ -18,15 +19,14 @@ import (
 
 const (
 	sessionSecret    = "example cookie signing secret"
-	sessionUserKey   = "googleID"
-	sessionUsername  = "googleName"
+	sessionUserKey   = "sessionID"
+	sessionUsername  = "sessionName"
 	sessionFirstName = "sessionFirstName"
-	sessionLastName  = "googleLastName"
-	sessionEmail     = "googleEmail"
+	sessionLastName  = "sessionLastName"
+	sessionEmail     = "sessionEmail"
 	sessionVerify    = "sessionVerify"
 	sessionIdo       = "sessionIdo"
 	sessionOauth     = "sessionOauth"
-	session1Test     = "session1Test"
 )
 
 //var sessionUrl *sessions.Session
@@ -46,6 +46,13 @@ func loginHandler(res http.ResponseWriter, req *http.Request) {
 	sessionUrl.Values["url"] = fmt.Sprint(req.URL)
 	sessionUrl.Values["refererBeforeLast"] = req.Referer()
 	sessionUrl.Save(res)
+
+	session, _ := utils.SessionStore.Get(req, utils.SessionName)
+	fmt.Println(session)
+	if session != nil {
+		http.Redirect(res, req, "/", http.StatusFound)
+		//utils.SessionStore.Destroy(res, utils.SessionName)
+	}
 
 	utils.ExecuteTemplate(res, "login.html", struct {
 		Title string
@@ -99,6 +106,7 @@ type passwordChange struct {
 
 func loginEmailHandler() http.Handler {
 	fn := func(res http.ResponseWriter, req *http.Request) {
+
 		var person Person
 
 		decoder := json.NewDecoder(req.Body)
@@ -189,7 +197,7 @@ func loginEmailHandler() http.Handler {
 /**
  *	funkce, která je volána po přihlášení přes Google
  */
-func loginOauthHandler() http.Handler {
+func loginOauthGoogleHandler() http.Handler {
 	fn := func(res http.ResponseWriter, req *http.Request) {
 		ctx := req.Context()
 		googleUser, err := google.UserFromContext(ctx)
@@ -242,6 +250,65 @@ func loginOauthHandler() http.Handler {
 	return http.HandlerFunc(fn)
 }
 
+/**
+ *	funkce, která je volána po přihlášení přes facebbok
+ */
+func loginOauthFacebookHandler() http.Handler {
+	fn := func(res http.ResponseWriter, req *http.Request) {
+		ctx := req.Context()
+		facebookUser, err := facebook.UserFromContext(ctx)
+		if err != nil {
+			http.Error(res, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		// 2. Implement a success handler to issue some form of session
+		session := utils.SessionStore.New(utils.SessionName)
+
+		if checkUserExists(facebookUser.Email) == true {
+			var person Person
+			sql2 := "SELECT ido,jmeno,password,authorization FROM osoby WHERE email LIKE ?"
+			err2 := db.Mdb.QueryRow(sql2, facebookUser.Email).Scan(&person.Ido, &person.Firstname, &person.Password, &person.Auth)
+			if err2 != nil {
+				fmt.Println(err2)
+				return
+			}
+
+			if person.Password != nil { //pokud tam je heslo, tzn. už tam je registrace, ale ne přes OAuth
+				res.Write([]byte("Registrace pod emailem " + facebookUser.Email + " už existuje a je použit způsob přihlašování pomocí hesla, tudíž není možno použít přihlášení pomocí třetí strany"))
+
+			} else { //pokud tam heslo není, tak se můžeme přihlásit
+				if person.Auth == 0 {
+					res.Write([]byte("Zatím nebyla provedena verifikace účtu, která byla zaslána na email " + facebookUser.Email))
+				} else {
+					session.Values[sessionVerify] = true
+					session.Values[sessionFirstName] = person.Firstname
+					session.Values[sessionIdo] = person.Ido
+					session.Values[sessionOauth] = "true"
+					session.Values[sessionEmail] = facebookUser.Email
+					session.Save(res)
+
+					sessionUrl, _ := utils.SessionStore.Get(req, "url")
+					http.Redirect(res, req, fmt.Sprint(sessionUrl.Values["refererBeforeLast"]), http.StatusFound)
+					utils.SessionStore.Destroy(res, "url")
+				}
+			}
+
+		} else {
+			splitName := strings.Split(facebookUser.Name, " ")
+			session.Values[sessionVerify] = false
+			session.Values[sessionFirstName] = splitName[0]
+			session.Values[sessionLastName] = splitName[1]
+			session.Values[sessionEmail] = facebookUser.Email
+			fmt.Println(session)
+
+			session.Save(res)
+			http.Redirect(res, req, "/registration-ouath", http.StatusFound)
+		}
+
+	}
+	return http.HandlerFunc(fn)
+}
+
 func checkUserExistsHandler(res http.ResponseWriter, req *http.Request) {
 	var exists bool
 	sql1 := "SELECT EXISTS(SELECT * FROM osoby WHERE email LIKE ?)"
@@ -285,16 +352,21 @@ func logoutHandler(res http.ResponseWriter, req *http.Request) {
 
 func registrationOauthHandler(res http.ResponseWriter, req *http.Request) {
 	var inputPassword bool
+	//pokud by tady byly session, tak vymazat
 	session, err := utils.SessionStore.Get(req, utils.SessionName)
 	if err != nil {
 		fmt.Println(err)
+	}
+
+	if session != nil {
+		http.Redirect(res, req, "/", http.StatusFound)
 	}
 
 	if req.Referer() == "" {
 		inputPassword = false
 	}
 
-	utils.SessionExists(utils.SessionName, req)
+	//utils.SessionExists(utils.SessionName, req) - měl jsem to tu, nevím proč
 
 	utils.ExecuteTemplate(res, "registration-oauth.html", struct {
 		Title     string
@@ -325,6 +397,13 @@ func registrationHandler(res http.ResponseWriter, req *http.Request) {
 	//sessionUrl := utils.SessionStore.New("url")
 	//sessionUrl.Values["url"] = fmt.Sprint(req.URL)
 	//sessionUrl.Save(res)
+	session,_ := utils.SessionStore.Get(req,utils.SessionName)
+	if session != nil {
+			http.Redirect(res, req, "/", http.StatusFound)
+	}
+
+
+
 
 	if req.Method == "POST" {
 		res.Header().Set("Content-Type", "application/json")

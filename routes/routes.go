@@ -3,10 +3,13 @@ package routes
 import (
 	"net/http"
 
-	"github.com/dghubble/gologin/v2"
-	"github.com/dghubble/gologin/v2/google"
 	"github.com/gorilla/mux"
+
+	"github.com/dghubble/gologin/v2"
+	"github.com/dghubble/gologin/v2/facebook"
+	"github.com/dghubble/gologin/v2/google"
 	"golang.org/x/oauth2"
+	facebookOAuth2 "golang.org/x/oauth2/facebook"
 	googleOAuth2 "golang.org/x/oauth2/google"
 	"runhill.cz/utils"
 )
@@ -17,14 +20,21 @@ var alert string
 func NewRouter() *mux.Router {
 	router := mux.NewRouter()
 
-	oauth2Config := &oauth2.Config{
+	googleOauth2Config := &oauth2.Config{
 		ClientID:     utils.GoogleClientId,
 		ClientSecret: utils.GoogleClientSecret,
 		RedirectURL:  utils.GoogleRedirectUrl,
 		Endpoint:     googleOAuth2.Endpoint,
 		Scopes:       []string{"profile", "email"},
 	}
-	stateConfig := gologin.DebugOnlyCookieConfig
+
+	facebookOauth2Config := &oauth2.Config{
+		ClientID:     utils.FacebookClientId,
+		ClientSecret: utils.FacebookClientSecret,
+		RedirectURL:  utils.FacebookRedirectUrl,
+		Endpoint:     facebookOAuth2.Endpoint,
+		Scopes:       []string{"email"},
+	}
 
 	router.HandleFunc("/", indexHandler)
 	router.HandleFunc("/login", loginHandler).Methods("GET")
@@ -46,10 +56,12 @@ func NewRouter() *mux.Router {
 
 	//router.HandleFunc("/login", LoginEmailHandler).Methods("POST")
 	//router.Handle("/login", loginEmailHandler()).Methods("POST")
+	stateConfig := gologin.DebugOnlyCookieConfig
 
-	router.Handle("/login-google", google.StateHandler(stateConfig, google.LoginHandler(oauth2Config, nil))).Methods("GET")
-	//router.Handle("/login-facebook", google.StateHandler(stateConfig, google.LoginHandler(oauth2Config, nil))).Methods("GET")
-	router.Handle("/loginoauth", google.StateHandler(stateConfig, google.CallbackHandler(oauth2Config, loginOauthHandler(), nil))).Methods("GET")
+	router.Handle("/login-google", google.StateHandler(stateConfig, google.LoginHandler(googleOauth2Config, nil))).Methods("GET")
+	router.Handle("/login-google-callback", google.StateHandler(stateConfig, google.CallbackHandler(googleOauth2Config, loginOauthGoogleHandler(), nil))).Methods("GET")
+	router.Handle("/login-facebook", facebook.StateHandler(stateConfig, facebook.LoginHandler(facebookOauth2Config, nil))).Methods("GET")
+	router.Handle("/login-facebook-callback", facebook.StateHandler(stateConfig, facebook.CallbackHandler(facebookOauth2Config, loginOauthFacebookHandler(), nil))).Methods("GET")
 
 	//staticFileDirectory := http.Dir("/var/www/runhill.cz/static")
 	staticFileDirectory := http.Dir(utils.StaticPath)

@@ -51,6 +51,10 @@ func main() {
 	utils.GoogleClientId = configuration.Google.ClientId
 	utils.GoogleClientSecret = configuration.Google.ClientSecret
 	utils.GoogleRedirectUrl = configuration.Server.Webname + "/" + configuration.Google.RedirectRoute
+	utils.FacebookClientId = configuration.Facebook.ClientId
+	utils.FacebookClientSecret = configuration.Facebook.ClientSecret
+	utils.FacebookRedirectUrl = configuration.Server.Webname + "/" + configuration.Facebook.RedirectRoute
+
 	utils.SessionName = configuration.Authentication.SessionName
 	utils.ServerWebname = configuration.Server.Webname
 	utils.SmtpServer = configuration.Email.SmtpServer
