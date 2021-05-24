@@ -10,6 +10,7 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/gomail.v2"
+	"runhill.cz/db"
 )
 
 func SecToTime(secinput int) string {
@@ -33,6 +34,7 @@ func SecToTime(secinput int) string {
 	return hh + m + ":" + s
 }
 
+/*
 func SessionExists(SessionName string, r *http.Request) map[string]interface{} {
 	arr := map[string]interface{}{"verify": false, "firstname": "", "oauth": ""} //když jsem tady pro oauth dal bolean, tak to nefungovalo
 	val, _ := SessionStore.Get(r, SessionName)
@@ -44,6 +46,44 @@ func SessionExists(SessionName string, r *http.Request) map[string]interface{} {
 		}
 	}
 	return arr
+}*/
+
+func SessionExists(SessionName string, r *http.Request) map[string]interface{} {
+	arr1 := map[string]interface{}{"verify": false, "firstname": "", "oauth": ""} //když jsem tady pro oauth dal bolean, tak to nefungovalo
+	val, _ := SessionStore.Get(r, SessionName)
+	if val != nil {
+		if val.Values["sessionVerify"] == true {
+			arr1["verify"] = true
+			arr1["firstname"] = fmt.Sprintf("%v", val.Values["sessionFirstName"])
+			arr1["oauth"] = fmt.Sprintf("%v", val.Values["sessionOauth"])
+		}
+	}
+
+	var etapa Etapy
+	sql1 := "SELECT id,start,cil,toSlug(CONCAT_WS(' ',start,cil)) AS seoUrl FROM etapy WHERE id = 1"
+	err := db.Mdb.QueryRow(sql1).Scan(&etapa.Id, &etapa.Start, &etapa.Cil, &etapa.SeoUrl)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	var etapyx []Etapy
+	sql2 := "SELECT id,start,cil,toSlug(CONCAT_WS(' ',start,cil)) AS seoUrl FROM etapy ORDER BY id ASC"
+	results, err := db.Mdb.Query(sql2)
+	if err != nil {
+		panic(err.Error())
+	}
+	for results.Next() {
+		var etapax Etapy
+		err = results.Scan(&etapax.Id, &etapax.Start, &etapax.Cil, &etapax.SeoUrl)
+		etapyx = append(etapyx, etapax)
+	}
+
+	//arr3 := map[string]interface{}{"etapa": etapa, "neco": 1}
+	//	fmt.Println(etapyx)
+
+	//	arr2 := map[string]map[string]interface{}{"bla": etapa}
+	arr3 := map[string]interface{}{"login": arr1, "etapy": EtapyList()}
+	return arr3
 }
 
 func RandStr(count int, min int, max int) string {
@@ -117,4 +157,37 @@ func YearsArr(minAge int) []string {
 		str += strconv.Itoa(i) + ","
 	}
 	return strings.Split(strings.TrimRight(str, ","), ",")
+}
+
+type Etapy struct {
+	Id     int
+	Start  string
+	Cil    string
+	SeoUrl string
+}
+
+func EtapyListzal() Etapy {
+	var etapa Etapy
+	sql1 := "SELECT id,start,cil,toSlug(CONCAT_WS(' ',start,cil)) AS seoUrl FROM etapy WHERE id = 1"
+	err := db.Mdb.QueryRow(sql1).Scan(&etapa.Id, &etapa.Start, &etapa.Cil, &etapa.SeoUrl)
+
+	if err != nil {
+		panic(err.Error())
+	}
+	return etapa
+}
+
+func EtapyList() []Etapy {
+	var etapy []Etapy
+	sql1 := "SELECT id,start,cil,toSlug(CONCAT_WS(' ',start,cil)) AS seoUrl FROM etapy ORDER BY id ASC"
+	results, err := db.Mdb.Query(sql1)
+	if err != nil {
+		panic(err.Error())
+	}
+	for results.Next() {
+		var etapa Etapy
+		err = results.Scan(&etapa.Id, &etapa.Start, &etapa.Cil, &etapa.SeoUrl)
+		etapy = append(etapy, etapa)
+	}
+	return etapy
 }

@@ -1,19 +1,47 @@
 {{define "menu"}}
+
 <header id="hea" class="d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 bg-body border-bottom shadow-sm">
     <p class="h5 my-0 me-md-auto fw-normal"><a href="/">RUNHILL</a></p>
-    <nav class="my-2 my-md-0 me-md-3">
-      <a class="p-2 text-dark" href="/etapy">Etapy</a>
-      <a class="p-2 text-dark" href="#">Přihlášky</a>
-      <a class="p-2 text-dark" href="#">Výsledky</a>
+    
+<nav class="navbar navbar-expand-lg navbar-light" style="padding-top:0;padding-bottom:0">
+  <div class="container-fluid">
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Etapy
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+            {{range  $i,$val :=  .etapy}}
+                <li><a class="dropdown-item" href="/etapa/{{$val.Id}}/{{$val.SeoUrl}}">{{$val.Start}} - {{$val.Cil}}</a></li>
+            {{end}}
+          </ul>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="#">Přihlášky</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">Výsledky</a>
+        </li>
+
       
-    </nav>
+      </ul>
+    </div>
+  </div>
+</nav>
+    
     <div id="tlacitko">
-   {{if eq .verify true}}
+   {{if eq .login.verify true}}
       <div  class="dropdown">
-        <button  class="btn btn-outline-primary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">{{.firstname}}</button>
+        <button  class="btn btn-outline-primary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">{{.login.firstname}}</button>
         <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
           <li><a class="dropdown-item" href="/account-edit">Změnit údaje</a></li>
-          {{if eq .oauth "false"}} {{/* když jsem tady dal bolean, tak to nefungovalo */}}
+          {{if eq .login.oauth "false"}} {{/* když jsem tady dal bolean, tak to nefungovalo */}}
             <li><a class="dropdown-item" href="/password-change">Změnit heslo</a></li>
           {{end}}
           <li><a class="dropdown-item" href="/account-delete">Smazat účet</a></li>

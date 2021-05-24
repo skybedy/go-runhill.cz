@@ -18,12 +18,12 @@ func etapyHandler(res http.ResponseWriter, req *http.Request) {
 		delete(session.Values, "neco")
 		session.Save(res)*/
 
-	utils.ExecuteTemplate(res, "etapy.html", struct {
-		Title string
-		Login interface{}
+	utils.ExecuteTemplate(res, "etapa.html", struct {
+		Title    string
+		MenuData interface{}
 	}{
-		Title: "Etapy",
-		Login: utils.SessionExists(utils.SessionName, req),
+		Title:    "Etapy",
+		MenuData: utils.SessionExists(utils.SessionName, req),
 	})
 
 }

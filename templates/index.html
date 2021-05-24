@@ -2,11 +2,13 @@
 <html lang="cz">
 {{template "head"}}
     <body>
-{{template "menu" .Login}}
+{{template "menu" .MenuData}}
     <main class="container">
 
-    <div class="row row-cols-1 row-cols-md-3 mb-3 text-center">
-    </div>
+    <p>Celoroční virtuální etapový běžecký závod v Beskydech</p>
+    {{range  $i,$val :=  .MenuData.etapy}}
+        <a href="/etapa/{{$val.Id}}/{{$val.SeoUrl}}">{{$val.Start}} - {{$val.Cil}}</a><br>
+    {{end}}
 
 {{template "footer"}}
         </main>

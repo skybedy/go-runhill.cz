@@ -18,5 +18,6 @@ require (
 	github.com/spf13/viper v1.7.1
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
 	golang.org/x/oauth2 v0.0.0-20210323180902-22b0adad7558
+	golang.org/x/text v0.3.3
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
 )
