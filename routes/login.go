@@ -17,10 +17,12 @@ import (
 	"runhill.cz/utils"
 )
 
+
 const (
 	sessionSecret    = "example cookie signing secret"
 	sessionUserKey   = "sessionID"
-	sessionUsername  = "sessionName"
+	
+    sessionUsername  = "sessionName"
 	sessionFirstName = "sessionFirstName"
 	sessionLastName  = "sessionLastName"
 	sessionEmail     = "sessionEmail"
@@ -46,6 +48,8 @@ func loginHandler(res http.ResponseWriter, req *http.Request) {
 	sessionUrl.Values["url"] = fmt.Sprint(req.URL)
 	sessionUrl.Values["refererBeforeLast"] = req.Referer()
 	sessionUrl.Save(res)
+
+utils.SessionStore.Destroy(res, utils.SessionName)
 
 	session, _ := utils.SessionStore.Get(req, utils.SessionName)
 	fmt.Println(session)
@@ -238,12 +242,15 @@ func loginOauthGoogleHandler() http.Handler {
 			}
 
 		} else {
-			session.Values[sessionVerify] = false
+			fmt.Println("tady")
+            http.Redirect(res, req, "/registration-ouath", http.StatusFound)
+			/*
+            session.Values[sessionVerify] = false
 			session.Values[sessionFirstName] = googleUser.GivenName
 			session.Values[sessionLastName] = googleUser.FamilyName
 			session.Values[sessionEmail] = googleUser.Email
-			session.Save(res)
-			http.Redirect(res, req, "/registration-ouath", http.StatusFound)
+			session.Save(res)  */
+		
 		}
 
 	}
